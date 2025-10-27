@@ -22,6 +22,7 @@ export const signin=async(req,res,next)=>{
         if(!user) return next(createError(404,"user not found")); 
          const isCorrect= bcrypt.compare(req.body.password,user.password); 
          if(!isCorrect) return next(createError(400,"Wrong credentials")); 
+         const { password, ...others } = user._doc;
       res.status(200).json(others); 
     }catch(err){
     next(err);
