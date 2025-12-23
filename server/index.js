@@ -6,50 +6,64 @@ import interviewRoutes from './routes/interviewRoutes.js';
 import candidateInterviewRoutes from './routes/candidateInterviewRoutes.js';
 import cors from "cors";
 
+dotenv.config();
 
 const app = express();
 app.use(express.json());
-dotenv.config();
+
 app.use(cors({
-    origin: '*', 
-    credentials: true, 
-  }));
-app.use('/api/users', userRoutes);
-app.use('/api/interviews', interviewRoutes);
-app.use('/api/candidate-interviews', candidateInterviewRoutes);
-app.use((err,req,res,next)=>{
-    const status=err.status || 500;
-    const message=err.message || "something went wrong";
-    return res.status(status).json({
-        success:false,
-        status,
-        message,
+  origin: '*',
+  credentials: true
+}));
+
+app.use("/api/users", userRoutes);
+app.use("/api/interviews", interviewRoutes);
+app.use("/api/candidate-interviews", candidateInterviewRoutes);
+
+
+
+
+app.post("/api/genai", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ message: "Message is required" });
+    }
+
+    const { GoogleGenAI } = await import("@google/genai");
+
+    const genAI = new GoogleGenAI({
+      apiKey: process.env.GENAI_API_KEY,
     });
+
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.5-flash", // ✅ FREE + FAST
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: message }],
+        },
+      ],
+    });
+
+    const reply =
+      response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    res.json({ reply });
+  } catch (err) {
+    console.error("Gemini API Error:", err.message || err);
+    res.status(500).json({ message: "AI error" });
+  }
 });
 
 
-app.post('/api/genai', async (req, res) => {
-  const { message } = req.body;
 
-  try {
-    const { GoogleGenAI } = await import('@google/genai');
-    const genAI = new GoogleGenAI({ apiKey: process.env.REACT_APP_GENAI_API_KEY });
-  
-    const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [
-        {
-          type: "text",
-          text: message
-        }]
-    });
-    const reply=response.text;
-    res.json({reply});
 
-  } catch (error) {
-    console.error('Error from Gemini AI:', error.message);
-    res.status(500).json({ error: 'Failed to get response from Gemini AI' });
-  }
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Server error"
+  });
 });
 
 

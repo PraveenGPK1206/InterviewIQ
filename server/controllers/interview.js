@@ -1,12 +1,11 @@
 import Interview from "../models/Interview.js";
 
 export const addInterview = async (req, res, next) => {
-  const { candidateId } = req.body;
-  const newInterview =  new Interview({ interviewerId: candidateId, ...req.body });
+  const newInterview =  new Interview(req.body );
   try {
-    const savedVideo = await newInterview.save();
+    const saved = await newInterview.save();
     console.log("added Interview");
-    res.status(200).json(savedVideo);     
+    res.status(200).json(saved);     
   } catch (err) {
     next(err);
   }
@@ -29,10 +28,10 @@ export const getAllInterviews = async (req, res) => {
 
 // for admin 
 export const getCreatedInterviews = async (req, res) => {
-  const { candidateId } = req.query;
+  const { interviewerId } = req.query;
   try {
     // Fetch all interviews and populate interviewer details
-    const interviews = await Interview.find({ interviewerId: candidateId});
+    const interviews = await Interview.find({ interviewerId: interviewerId});
     if(!interviews || interviews.length === 0){
       return res.status(404).json({ message: 'No interviews found' });
     }

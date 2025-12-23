@@ -126,7 +126,7 @@ const SignIn = () => {
       try {
         const res = await axios.post(
           "http://localhost:8800/api/users/signin",
-          { name, password }
+          { email, password }
         );
         dispatch(loginSuccess(res.data));
         navigate("/");
@@ -150,23 +150,23 @@ const SignIn = () => {
 
       <Container2>
         <Form onSubmit={handleSubmit}>
-          <Input
+          {signUp && (
+            <Input
             type="text"
             placeholder="Username"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
+          ) }
 
-          {signUp && (
-            <Input
+          <Input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-          )}
 
           <Input
             type="password"

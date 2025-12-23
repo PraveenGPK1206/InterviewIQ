@@ -1,250 +1,3 @@
-// import axios from "axios";
-// import React, { useEffect, useState } from "react";
-// import { useSelector } from "react-redux";
-// import { useLocation, useNavigate } from "react-router-dom";
-// import styled from "styled-components";
-
-// const Wrapper = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   background-color: #b3d2ea;
-//   height: 85%;
-//   width: 70%;
-//   box-shadow: 0 0 0.6rem rgba(221, 191, 239, 0.88);
-// `;
-
-// const Container1 = styled.div`
-//   flex: 3;
-//   background-color: #1f3850;
-//   font-size: 2rem;
-//   font-weight: 600;
-//   color: #b3d2ea;
-//   display: flex;
-// `;
-
-// const Greeting = styled.div`
-//   flex: 4;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-// `;
-
-// const Time = styled.div`
-//   flex: 1;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-// `;
-
-// const Container2 = styled.div`
-//   flex: 20;
-//   display: flex;
-//   flex-direction: column;
-// `;
-
-// const P = styled.p`
-//   font-size: 1.4rem;
-//   color: rgba(51, 74, 111, 1);
-//   font-weight: 600;
-//   flex: 0.5;
-//   padding: 0% 10%;
-// `;
-
-// const Div = styled.div`
-//   flex: 20;
-//   display: flex;
-//   flex-direction: column;
-//   padding: 0% 10% 5% 10%;
-// `;
-
-// const Input = styled.textarea.attrs({
-//   autoCorrect: "off",
-//   autoCapitalize: "none",
-//   spellCheck: "false",
-//   autoComplete: "off",
-// })`
-//   flex: 18;
-//   width: 100%;
-//   color: #2f5e81;
-//   padding: 1rem;
-//   margin-bottom: 2%;
-//   font-size: 1.2rem;
-//   font-weight: 600;
-//   border: 0.1rem solid #ddd;
-//   border-radius: 5px;
-//   outline: none;
-//   resize: vertical;
-//   box-sizing: border-box;
-//   overflow-y: auto;
-//   &::-webkit-scrollbar {
-//     display: none;
-//   }
-//   scrollbar-width: none;
-//   -ms-overflow-style: none;
-// `;
-
-// const Div1 = styled.div`
-//   width: 100%;
-//   flex: 2;
-//   display: flex;
-//   align-items: center;
-//   justify-content: flex-end;
-// `;
-
-// const Button = styled.button`
-//   border-radius: 1rem;
-//   border: none;
-//   padding: 2% 10%;
-//   font-size: 1.2rem;
-//   cursor: pointer;
-//   background-color: rgba(51, 74, 111, 1);
-//   color: #fff;
-// `;
-
-// const Interview = () => {
-//   const location = useLocation();
-//   const navigate = useNavigate();
-//   const { resumeData, interview_id } = location.state || {};
-//   const { currentUser } = useSelector((state) => state.user);
-
-//   const [resData, setResData] = useState([]);
-//   const [interviewData, setInterviewData] = useState({});
-//   const [queAndAns, setQueAndAns] = useState([]);
-//   const [question, setQuestion] = useState("");
-//   const [ans, setAns] = useState("");
-//   const [idx, setIdx] = useState(0);
-//   const [length, setLength] = useState(0);
-//   const [timeLeft, setTimeLeft] = useState(40);
-
-//   const promptForQue =
-//     "This is my resume {" +
-//     resumeData +
-//     "} and I'm applying for a position SDE at Amazon company. Please interview me by asking 6 questions (easy to hard) and return a JSON object like {questions:[que1,que2,que3,que4,que5,que6]}. No extra text, only JSON.";
-
-//   // Countdown timer
-//   useEffect(() => {
-//     if (timeLeft <= 0) return;
-//     const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-//     return () => clearInterval(timer);
-//   }, [timeLeft]);
-
-//   // Auto-submit when timer reaches 0
-//   useEffect(() => {
-//     if (timeLeft === 0 && resData.length > 0) handleSubmit();
-//   }, [timeLeft]);
-
-//   // Fetch questions + interview info
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const res = await axios.post(`http://localhost:8800/api/genai`, {
-//           message: promptForQue,
-//         });
-//         const intrData = await axios.get(
-//           `http://localhost:8800/api/interviews/interview?interviewId=${interview_id}`
-//         );
-//         setInterviewData(intrData.data);
-
-//         const jsonString = res.data.reply.replace(/```json|```/g, "").trim();
-//         const data = JSON.parse(jsonString);
-//         setResData(data.questions);
-//         setLength(data.questions.length);
-//         setQuestion(data.questions[0]);
-//       } catch (err) {
-//         console.error("Error fetching interview questions", err);
-//       }
-//     };
-//       fetchData();
-//   }, [interview_id, resumeData, currentUser]);
-
-//   // Generate AI score
-//   const getAiScore = async (qaData) => {
-//     const finalPrompt = `
-//       User: ${promptForQue}
-//       Questions: ${JSON.stringify(resData)}
-//       My answers: ${JSON.stringify(qaData)}
-//       Please give overall final score out of 10 as JSON {finalScore:number}, no extra text.
-//     `;
-//     try {
-//       const res = await axios.post(`http://localhost:8800/api/genai`, {
-//         message: finalPrompt,
-//       });
-//       const jsonString = res.data.reply.replace(/```json|```/g, "").trim();
-//       const data = JSON.parse(jsonString);
-//       return data.finalScore;
-//     } catch (err) {
-//       console.error("Error getting AI score", err);
-//       navigate("/");
-//       return 0;
-//     }
-//   };
-
-//   // Handle next/submit
-//   const handleSubmit = async () => {
-//     const newQnA = [...queAndAns, { question: resData[idx], answer: ans }];
-//     setQueAndAns(newQnA);
-
-//     // If last question
-//     if (idx + 1 === length) {
-//       const finalScore = await getAiScore(newQnA);
-//       try {
-//         const res = await axios.post(
-//           "http://localhost:8800/api/candidate-interviews/submit",
-//           {
-//             interviewId: interview_id,
-//             candidateId: currentUser._id,
-//             company: interviewData.company,
-//             role: interviewData.role,
-//             description: interviewData.description,
-//             questionAndAnswers: newQnA,
-//             finalScore: finalScore,
-//           }
-//         );
-//         navigate("/result", { state: { interviewId: res.data._id } });
-//       } catch (err) {
-//         console.error("Error submitting results", err);
-//         navigate("/");
-//       }
-//     } else {
-//       setIdx((prev) => prev + 1);
-//       setQuestion(resData[idx + 1]);
-//       setAns("");
-//     }
-//   };
-
-//   return (
-//     <Wrapper>
-//       <Container1 onClick={()=> console.log(resData)}>
-//         <Greeting>All The Best, {currentUser?.name}!</Greeting>
-//         <Time>00:{timeLeft.toString().padStart(2, "0")}</Time>
-//       </Container1>
-
-//       <Container2>
-//         {question ? (
-//           <P>
-//             {idx + 1}. {question}
-//           </P>
-//         ) : (
-//           <P>Loading question...</P>
-//         )}
-//         <Div>
-//           <Input
-//             value={ans}
-//             placeholder="Type your answer here..."
-//             onChange={(e) => setAns(e.target.value)}
-//           />
-//           <Div1>
-//             <Button onClick={handleSubmit}>
-//               {length !== 0 && idx + 1 === length ? "Submit" : "Next"}
-//             </Button>
-//           </Div1>
-//         </Div>
-//       </Container2>
-//     </Wrapper>
-//   );
-// };
-
-// export default Interview;
 
 
 import axios from "axios";
@@ -358,16 +111,16 @@ const Button = styled.button`
     transform: scale(1.05);
   }
 `;
-
+const Sub = styled.p`
+font-size:5rem`;
 // ---------------- Main Component ----------------
 const Interview = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resumeData, interview_id } = location.state || {};
+  const { resumeData, interview } = location.state || {};
   const { currentUser } = useSelector((state) => state.user);
 
   const [resData, setResData] = useState([]);
-  const [interviewData, setInterviewData] = useState({});
   const [queAndAns, setQueAndAns] = useState([]);
   const [question, setQuestion] = useState("");
   const [ans, setAns] = useState("");
@@ -375,14 +128,33 @@ const Interview = () => {
   const [length, setLength] = useState(0);
   const [timeLeft, setTimeLeft] = useState(4 * 60);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const promptForQue = `
-    This is my resume: ${resumeData}.
-    I'm applying for the position of SDE at Amazon.
-    Please interview me by asking 6 questions (easy to hard) and return a JSON object like:
-    { "questions": ["que1", "que2", "que3", "que4", "que5", "que6"] }.
-    No extra text, only JSON.
-  `;
+You are a senior technical interviewer.
+
+Resume:
+${resumeData}
+
+Candidate is applying for the role of ${interview.role} at ${interview.company}.
+
+Task:
+- Analyze the resume.
+- Identify key skills and weak areas.
+- Ask 6 interview questions starting from easy to hard.
+- Questions must be relevant to the resume and role.
+
+Output format (strict):
+{
+  "questions": ["q1", "q2", "q3", "q4", "q5", "q6"]
+}
+
+Rules:
+- No explanations.
+- No extra text.
+- Only valid JSON.
+`;
+
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -399,14 +171,8 @@ const Interview = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [res, intrData] = await Promise.all([
-          axios.post(`http://localhost:8800/api/genai`, { message: promptForQue }),
-          axios.get(`http://localhost:8800/api/interviews/interview`, {
-            params: { interviewId: interview_id },
-          }),
-        ]);
 
-        setInterviewData(intrData.data);
+        const res = await axios.post('http://localhost:8800/api/genai', { message: promptForQue });
 
         const jsonString = res.data.reply.replace(/```json|```/g, "").trim();
         const data = JSON.parse(jsonString);
@@ -426,19 +192,44 @@ const Interview = () => {
       }
     };
 
-    if (interview_id && resumeData && currentUser?._id) {
+    if (interview && resumeData && currentUser?._id) {
       fetchData();
     }
-  }, [interview_id, resumeData, currentUser, navigate]);
+  }, [interview, resumeData, currentUser, navigate]);
 
   const getAiScore = async (qaData) => {
-    const finalPrompt = `
-      User: ${promptForQue}
-      Questions: ${JSON.stringify(resData)}
-      My answers: ${JSON.stringify(qaData)}
-      Please give an overall final score out of 10 as JSON: { "finalScore": number }.
-      No extra text.
-    `;
+  const finalPrompt = `
+    You are an expert technical interviewer.
+
+    Resume:
+${resumeData}
+
+Role: ${interview.role} at ${interview.company}
+
+Questions:
+${JSON.stringify(resData)}
+
+Candidate's answers:
+${JSON.stringify(qaData)}
+
+Task:
+1. For each question, generate your own ideal answer based on the resume and role.
+2. Compare the candidate's answer to your ideal answer.
+3. Give 2 points if the candidate's answer fully matches key points, 1 point if partially matches, 0 points if irrelevant, vague, or missing key points.
+4. Do not give leniency or extra credit.
+5. Sum the points and scale final score out of 10.
+
+Output format (strict JSON):
+{
+  "finalScore": number,
+  "scores": [score1, score2, score3, score4, score5, score6] 
+}
+
+Rules:
+- Only JSON.
+- No extra text or explanation.
+`;
+
     try {
       const res = await axios.post(`http://localhost:8800/api/genai`, {
         message: finalPrompt,
@@ -459,22 +250,23 @@ const Interview = () => {
     setQueAndAns(newQnA);
 
     if (idx + 1 === length) {
+      setIsSubmitting(true);
       // Last question
       const finalScore = await getAiScore(newQnA);
       try {
         const res = await axios.post(
           "http://localhost:8800/api/candidate-interviews/submit",
           {
-            interviewId: interview_id,
+            interviewId: interview._id,
             candidateId: currentUser._id,
-            company: interviewData.company,
-            role: interviewData.role,
-            description: interviewData.description,
+            company: interview.company,
+            role: interview.role,
+            description: interview.description,
             questionAndAnswers: newQnA,
             finalScore,
           }
         );
-        navigate("/result", { state: { interviewId: res.data._id } });
+        navigate("/result", { state: { candidateInterviewId: (res.data)._id } });
       } catch (err) {
         console.error("Error submitting results:", err);
         navigate("/");
@@ -483,7 +275,7 @@ const Interview = () => {
       setIdx((prev) => prev + 1);
       setQuestion(resData[idx + 1]);
       setAns("");
-      setTimeLeft(4*60); 
+      setTimeLeft(4 * 60);
     }
   };
 
@@ -508,7 +300,7 @@ const Interview = () => {
           {seconds.toString().padStart(2, "0")}</Time>
       </Container1>
 
-      <Container2>
+      {!isSubmitting ? <Container2>
         {question ? (
           <P>
             {idx + 1}. {question}
@@ -528,7 +320,11 @@ const Interview = () => {
             </Button>
           </Div1>
         </Div>
-      </Container2>
+      </Container2> :
+        <Container2>
+          <Sub> Submiting...</Sub>
+        </Container2>
+      }
     </Wrapper>
   );
 };

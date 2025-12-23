@@ -4,12 +4,21 @@ import Home from "./pages/Home";
 import Interview from "./pages/Interview";
 import SignIn from "./pages/SignIn";
 import Result from "./components/Result";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "./redux/userSlice";
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #1f3850ff;
   height: 100vh;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 `;
 
 const NavBar = styled.div`
@@ -49,12 +58,22 @@ const Content = styled.div`
 // ✅ Separate component so we can use useNavigate()
 const Layout = () => {
   const navigate = useNavigate();
+  const { currentUser } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
+  const handleSignInSignOut = () => {
+    if (currentUser) {
+      dispatch(logout());
+      navigate("/signin");
+    } else {
+      navigate("/signin");
+    }
+  }
   return (
     <Wrapper>
       <NavBar>
         <Button onClick={() => navigate("/")}>Home</Button>
-        <Button onClick={() => navigate("/signin")}>Sign In</Button>
+        <Button onClick={handleSignInSignOut}>{currentUser ? "Sign Out" : "Sign In"}</Button>
       </NavBar>
 
       <Content>

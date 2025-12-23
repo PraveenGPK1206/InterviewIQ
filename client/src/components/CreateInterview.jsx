@@ -92,7 +92,7 @@ const CreateInterview = ({ setCreate, candidateId, setInterviews }) => {
   const getCreatedInterviews = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8800/api/interviews/user?candidateId=${candidateId}`
+        `http://localhost:8800/api/interviews/user?interviewerId=${candidateId}`
       );
       setInterviews(res.data);
     } catch (err) {
@@ -109,7 +109,7 @@ const CreateInterview = ({ setCreate, candidateId, setInterviews }) => {
 
     try {
       await axios.post("http://localhost:8800/api/interviews/", {
-        candidateId,
+        interviewerId: candidateId,
         company,
         role,
         description,

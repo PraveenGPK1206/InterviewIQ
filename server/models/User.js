@@ -15,7 +15,8 @@ const UserSchema = new mongoose.Schema({
         required:true
     },
     userType:{
-        type:String,  // interviewer or candidate
+        type:String,  
+         required: true // interviewer or candidate
     }
  },
  {timestamps : true}

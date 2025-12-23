@@ -73,29 +73,19 @@ const Button = styled.button`
   }
 `;
 
-const Card = ({ setUpload, interviewer, selfBlock, data, index, setClickedIdx }) => {
+const CandidatesCard = ({ data , index }) => {
   const navigate = useNavigate();
 
   const handleButton = () => {
-    setClickedIdx(index); // ✅ Removed "+1" to avoid off-by-one bug
-    if(interviewer){
-      return ;
-    }
-    if (selfBlock) {
-      // Candidate viewing completed interview
-      navigate("/result", { state: { candidateInterviewId: data._id } });
-    } else {
-      // Candidate starting interview
-      setUpload(true);
-    }
+     navigate("/result", { state: { candidateInterviewId: data._id } });
   };
 
   return (
     <Container>
       <Div1>
         <Heading>
-          {index + 1}. {data.company}{" "}
-          &lt;
+          {index + 1}. {data.candidateName}{"    "}
+          &nbsp;&nbsp;  &lt;
           <span
             style={{
               color: "#2067a6",
@@ -104,7 +94,7 @@ const Card = ({ setUpload, interviewer, selfBlock, data, index, setClickedIdx })
               fontStyle: "italic",
             }}
           >
-            {data.role}
+           &nbsp;  Score : {data.finalScore}&nbsp; 
           </span>
           &gt;
         </Heading>
@@ -112,23 +102,15 @@ const Card = ({ setUpload, interviewer, selfBlock, data, index, setClickedIdx })
       </Div1>
 
       {/* Show button only for candidates */}
-      {!interviewer && (
-        <Div2>
-          <Button onClick={handleButton}>
-            {selfBlock ? "View" : "Start"}
-          </Button>
-        </Div2>
-      )}
-      {interviewer && (
+    
         <Div2>
           <Button onClick={handleButton}>
             View
           </Button>
         </Div2>
-      )}
-
+      
     </Container>
   );
 };
 
-export default Card;
+export default CandidatesCard;

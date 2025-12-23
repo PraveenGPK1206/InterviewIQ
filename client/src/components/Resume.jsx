@@ -60,7 +60,7 @@ const Button = styled.button`
   }
 `;
 
-const Resume = ({ setUpload, interview_id }) => {
+const Resume = ({ setUpload, interview}) => {
   const { currentUser } = useSelector((state) => state.user);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ const Resume = ({ setUpload, interview_id }) => {
       navigate("/interview", {
         state: {
           resumeData: text,
-          interview_id,
+          interview
         },
       });
 

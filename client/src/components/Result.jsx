@@ -9,18 +9,21 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #b3d2eaff;
-  height: 85%;
+  height: 80vh;
   width: 70%;
   box-shadow: 0 0 0.6rem rgba(221, 191, 239, 0.88);
+  position: relative;
 `;
 
 const Container1 = styled.div`
-  flex: 3;
+  width: 100%;
+  flex: 1;
   background-color: #1f3850ff;
+  display: flex;
   font-size: 2rem;
   font-weight: 600;
   color: #b3d2eaff;
-  display: flex;
+  
 `;
 
 const Greeting = styled.div`
@@ -40,19 +43,24 @@ const Time = styled.div`
 `;
 
 const Container2 = styled.div`
-  flex: 20;
+  flex: 7;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  height: 100%;
+   overflow: hidden;  
+  min-height: 0; 
+  
+   &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 `;
 
 const Heading = styled.div`
   width: 100%;
   flex-shrink: 0;
   height: 8%;
-  min-height: 40px;
+  min-height: 0;
   font-size: 1.6rem;
   font-weight: 700;
   font-family: georgia;
@@ -69,14 +77,14 @@ const Info = styled.div`
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-
-  /* Hide scrollbar */
+  gap: 0.1rem;
+min-height: 0;  /* Hide scrollbar */
   &::-webkit-scrollbar {
     display: none;
   }
   scrollbar-width: none;
   -ms-overflow-style: none;
+   
 `;
 
 const P = styled.p`
@@ -127,7 +135,7 @@ const View = styled.div`
 
 const Result = () => {
   const location = useLocation();
-  const { interviewId } = location.state || {};
+  const { candidateInterviewId } = location.state || {};
   const { currentUser } = useSelector((state) => state.user);
   const [data, setData] = useState(null);
   const [clickedIdx, setClickedIdx] = useState(0);
@@ -135,10 +143,10 @@ const Result = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!interviewId) return; // prevent call if interviewId is missing
+      if (!candidateInterviewId) return; // prevent call if candidateInterviewId is missing
       try {
         const res = await axios.get(
-          `http://localhost:8800/api/candidate-interviews/interview?interviewId=${interviewId}`
+          `http://localhost:8800/api/candidate-interviews/interview?candidateInterviewId=${candidateInterviewId}`
         );
         setData(res.data);
       } catch (err) {
@@ -146,7 +154,7 @@ const Result = () => {
       }
     };
     fetchData();
-  }, [interviewId]);
+  }, [candidateInterviewId]);
 
   const handleView = (idx) => {
     setClickedIdx(idx);

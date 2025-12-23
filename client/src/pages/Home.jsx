@@ -5,6 +5,7 @@ import Card from "../components/Card";
 import Resume from "../components/Resume";
 import CreateInterview from "../components/CreateInterview";
 import axios from "axios";
+import CandidatesCard from "../components/CandidatesCard";
 
 const Wrapper = styled.div`
   display: flex;
@@ -109,26 +110,41 @@ const Create = styled.div`
 `;
 
 const Home = () => {
-  const [upload, setUpload] = useState(false);
+  const [isResumeUploadOpen, setIsResumeUploadOpen] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
   const [selfBlock, setSelfBlock] = useState(false);
   const [create, setCreate] = useState(false);
-  const [interviews, setInterviews] = useState([]);
+  const [availableInterviews, setAvailableInterviews] = useState([]);
   const [completedInterviews, setCompletedInterviews] = useState([]);
+  const [candidateInterviewAttempts,setCandidateInterviewAttempts]=useState([]);
   const [clickedIdx, setClickedIdx] = useState(null);
 
-  // Fetch all interviews
+  // Fetch all availableInterviews
   useEffect(() => {
-    const fetchInterviews = async () => {
+    const fetchAvailableInterviews = async () => {
       try {
         const res = await axios.get(`http://localhost:8800/api/interviews`);
-        setInterviews(res.data);
+        setAvailableInterviews(res.data);
       } catch (err) {
-        console.error("Failed to fetch interviews:", err);
+        console.error("Failed to fetch availableInterviews:", err);
       }
     };
-    fetchInterviews();
+    fetchAvailableInterviews();
   }, [currentUser]);
+
+   // Fetch role based interviews
+  useEffect(() => {
+    const fetchCandidateInterviewAttempts = async () => {
+      if(currentUser.userType!=="interviewer" ||  clickedIdx === null || !availableInterviews[clickedIdx]) return ;
+      try {
+        const res = await axios.get(`http://localhost:8800/api/candidate-interviews/interviews?interviewId=${availableInterviews[clickedIdx]._id}`);
+        setCandidateInterviewAttempts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch candidateInterviewAttempts:", err);
+      }
+    };
+    fetchCandidateInterviewAttempts();
+  }, [currentUser,clickedIdx]);
 
   // Fetch candidate's completed interviews
   useEffect(() => {
@@ -160,16 +176,19 @@ const Home = () => {
           </>
         ) : (
           <Box>
-            Your Created Interviews &nbsp;&nbsp;
-            <Add onClick={() => setCreate(true)}>Create</Add>
+            {clickedIdx !== null ? "Candidates Interview for "+availableInterviews[clickedIdx].role:"Your Created Interviews"} &nbsp;&nbsp;
+            
+            {clickedIdx !== null ? <Add onClick={()=> setClickedIdx(null) }> Back </Add> : <Add onClick={() => setCreate(true)}>Create</Add>  }
           </Box>
         )}
       </Container1>
 
       <Container2>
-        {(selfBlock && currentUser?.userType !== "interviewer"
+       
+        { clickedIdx===null 
+        ? (selfBlock && currentUser?.userType !== "interviewer"
           ? completedInterviews
-          : interviews
+          : availableInterviews
         )
           .filter(
             (interview) =>
@@ -179,19 +198,28 @@ const Home = () => {
             <Card
               key={interview._id || index}
               selfBlock={selfBlock}
-              setUpload={setUpload}
+              setUpload={setIsResumeUploadOpen}
               interviewer={currentUser?.userType === "interviewer"}
               index={index}
               setClickedIdx={setClickedIdx}
               data={interview}
             />
-          ))}
+          ))
+          :(
+            candidateInterviewAttempts?.map((interview,index)=>(
+              <CandidatesCard
+                data={interview}
+                index={index}
+              />
+            ))
+          )
+          }
 
-        {upload && clickedIdx !== null && interviews[clickedIdx] && (
-          <Upload>
+        {isResumeUploadOpen && clickedIdx !== null && availableInterviews[clickedIdx] && (
+          <Upload> 
             <Resume
-              setUpload={setUpload}
-              interview_id={interviews[clickedIdx]._id}
+              setUpload={setIsResumeUploadOpen}
+              interview={availableInterviews[clickedIdx]}
             />
           </Upload>
         )}
@@ -201,7 +229,7 @@ const Home = () => {
             <CreateInterview
               setCreate={setCreate}
               candidateId={currentUser._id}
-              setInterviews={setInterviews}
+              setInterviews={setAvailableInterviews}
             />
           </Create>
         )}
