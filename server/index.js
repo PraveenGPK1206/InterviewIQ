@@ -1,12 +1,17 @@
+import dns from "dns";
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+
 import userRoutes from './routes/userRoutes.js';
 import interviewRoutes from './routes/interviewRoutes.js';
 import candidateInterviewRoutes from './routes/candidateInterviewRoutes.js';
 import cors from "cors";
 
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 dotenv.config();
+
+import { connectRedis } from "./config/redis.js"
 
 const app = express();
 app.use(express.json());
@@ -67,14 +72,20 @@ app.use((err, req, res, next) => {
 });
 
 
-const connect=() =>{
-    mongoose.connect(process.env.MONGO).then(()=>{
-        console.log("connnected to db");
-    }).catch((err)=>{
-        throw err;
-    });
+const connect = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO);
+    console.log("Connected to DB");
+  } catch (err) {
+    console.error("DB connection failed:", err.message);
+    process.exit(1); // crash fast so nodemon restarts
+  }
 };
-app.listen(8800,()=>{
-     connect();
-    console.log("server started");
-})
+
+app.listen(8800, async () => {
+  await connect();
+
+  await connectRedis();
+
+  console.log("server started");
+});

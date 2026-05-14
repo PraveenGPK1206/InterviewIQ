@@ -1,10 +1,16 @@
 import Interview from "../models/Interview.js";
+import redisClient from "../config/redis.js";
 
 export const addInterview = async (req, res, next) => {
   const newInterview =  new Interview(req.body );
   try {
     const saved = await newInterview.save();
+    await redisClient.del("all_interviews");
+    await redisClient.del(
+      `created_interviews_${req.body.interviewerId}`
+    );
     console.log("added Interview");
+    console.log("Cache cleared");
     res.status(200).json(saved);     
   } catch (err) {
     next(err);

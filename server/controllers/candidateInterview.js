@@ -1,5 +1,6 @@
 import CandidateInterview from "../models/CandidateInterview.js";
 import User from "../models/User.js";
+import redisClient from "../config/redis.js";
 
 export const submitInterview = async (req, res) => {
   try {
@@ -11,6 +12,17 @@ export const submitInterview = async (req, res) => {
     }
     const newCandidateInterview =  new CandidateInterview(req.body);
     const completedInterview = await newCandidateInterview.save();
+   
+    await redisClient.del(
+      `ranking_${interviewId}`
+    );
+    await redisClient.del(
+    `candidateInterviews_${candidateId}`
+    );
+
+    console.log("Ranking cache cleared");
+    console.log("candidateInterviews cache cleared");
+    
     res.status(200).json(completedInterview);
   } catch (err) {
     console.error(err);
